@@ -14,18 +14,20 @@
           label="Search"
           single-line
           hide-details
+          class="mb-4 pr-4"
         ></v-text-field>
 
-        <v-select
+        <v-container>
+          <v-select
           v-model="locationFilter"
           :items="locationOptions"
           label="Location"
           chips
           multiple
-        ></v-select>
-
-        <v-spacer></v-spacer>
-
+          class="w-25"
+          ></v-select>
+        </v-container>
+       
         <v-toolbar flat>
           <v-spacer></v-spacer>
           <v-dialog v-model="dialog" max-width="500px">
