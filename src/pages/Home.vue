@@ -1,6 +1,6 @@
 <template>
     <section>
-        <v-card text="This is Export page">
+        <v-card text="This is Home page">
         </v-card>
     </section>
 </template>
