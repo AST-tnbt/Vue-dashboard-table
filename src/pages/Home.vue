@@ -3,13 +3,30 @@
     <v-data-table
     v-model="selected"
     :headers="headers"
-    :items="items"
+    :items="filteredItems"
     item-value="id"
     show-select
     >
       <template v-slot:top>
+        <v-text-field
+          v-model="search"
+          append-icon="mdi-magnify"
+          label="Search"
+          single-line
+          hide-details
+        ></v-text-field>
+
+        <v-select
+          v-model="locationFilter"
+          :items="locationOptions"
+          label="Location"
+          chips
+          multiple
+        ></v-select>
+
+        <v-spacer></v-spacer>
+
         <v-toolbar flat>
-          <v-toolbar-title>CRUD</v-toolbar-title>
           <v-spacer></v-spacer>
           <v-dialog v-model="dialog" max-width="500px">
 
@@ -112,6 +129,10 @@
       dialog: false,
       dialogDelete: false,
       selected: [],
+      selectedItems: [],
+      search: '',
+      locationFilter: [],
+      locationOptions: [],
       headers:
       [
         {
@@ -169,6 +190,26 @@
       formTitle() 
       {
         return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
+      },
+
+      filteredItems() 
+      {
+        let filtered = this.items;
+
+        if (this.search)
+        {
+          const searchTerm = this.search.toLowerCase();
+          filtered = filtered.filter(item => 
+              item.name.toLowerCase().includes(searchTerm) ||
+              item.location.toLowerCase().includes(searchTerm)
+          );
+        }
+
+        filtered = filtered.filter(item => 
+          this.locationFilter.length === 0 || this.locationFilter.includes(item.location)
+        );
+
+        return filtered;
       },
     },
 
@@ -276,6 +317,8 @@
             volume: '0.0001',
           },
         ]
+
+        this.locationOptions = [...new Set(this.items.map(item => item.location))];
       },
 
       editItem(item) 
