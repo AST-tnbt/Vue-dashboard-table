@@ -17,12 +17,15 @@
               <v-btn class="mb-2" color="primary" dark v-bind="props">
                 New Item
               </v-btn>
+              <v-btn class="mb-2" color="red" dark @click="deleteItem" v-if="selected.length > 0">
+                Delete
+              </v-btn>
             </template>
 
-              <v-card>
-                <v-card-title>
-                    <span class="text-h5">{{ formTitle }}</span>
-                </v-card-title>
+            <v-card>
+              <v-card-title>
+                  <span class="text-h5">{{ formTitle }}</span>
+              </v-card-title>
 
               <v-card-text>
                 <v-container>
@@ -74,6 +77,17 @@
             </v-card>
           </v-dialog>
 
+          <v-dialog v-model="dialogDelete" max-width="500px">
+          <v-card>
+            <v-card-title class="text-h5">Are you sure you want to delete this items?</v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue-darken-1" variant="text" @click="closeDelete">Cancel</v-btn>
+              <v-btn color="blue-darken-1" variant="text" @click="deleteItemConfirm">OK</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+            </v-card>
+          </v-dialog>
           
         </v-toolbar>
       </template>
@@ -96,6 +110,7 @@
   {
     data: () => ({
       dialog: false,
+      dialogDelete: false,
       selected: [],
       headers:
       [
@@ -160,6 +175,10 @@
     watch: 
     {
       dialog(val) 
+      {
+        val || this.close()
+      },
+      dialogDelete(val) 
       {
         val || this.close()
       },
@@ -266,6 +285,19 @@
         this.dialog = true
       },
 
+      deleteItem(item) 
+      {
+        this.selectedItems = [...this.selected]; 
+        this.dialogDelete = true
+      },
+
+      deleteItemConfirm() 
+      {
+        this.items = this.items.filter(item => !this.selectedItems.includes(item.id));
+        this.selected = [];
+        this.closeDelete();
+      },
+
       close() 
       {
         this.dialog = false
@@ -273,6 +305,12 @@
           this.editedItem = Object.assign({}, this.defaultItem)
           this.editedIndex = -1
         })
+      },
+
+      closeDelete() 
+      {
+        this.dialogDelete = false
+        this.selectedItems = [];
       },
 
       save() 
