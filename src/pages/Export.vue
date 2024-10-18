@@ -1,6 +1,6 @@
 <template>
   <section class="export-section">
-    <v-card class="card-container">
+    <v-card class="card-container ml-5">
       <h2 class="header">Export Data</h2>
       <div class="table-container">
         <v-data-table
