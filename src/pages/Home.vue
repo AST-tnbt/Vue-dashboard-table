@@ -14,7 +14,7 @@
           label="Search"
           single-line
           hide-details
-          class="mb-4 pr-4"
+          class="mb-4 pr-4 ml-4 mt-4"
         ></v-text-field>
 
         <v-container>
