@@ -13,11 +13,9 @@
       </div>
     </v-card>
 
-    <!-- Nút Export ở ngoài bảng dữ liệu -->
     <div class="export-dropdown">
       <button class="export-button" @click="toggleDropdown">Export</button>
       
-      <!-- Dropdown hiển thị khi dropdownOpen = true -->
       <ul v-if="dropdownOpen" class="dropdown-menu" @click.stop>
         <li @click="exportToExcel">Export Excel</li>
         <li @click="exportToCSV">Export CSV</li>
