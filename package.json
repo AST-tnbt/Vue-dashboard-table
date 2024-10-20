@@ -13,9 +13,11 @@
     "exceljs": "^4.4.0",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
+    "papaparse": "^5.4.1",
     "roboto-fontface": "*",
     "vue": "^3.4.31",
-    "vuetify": "^3.6.11"
+    "vuetify": "^3.7.3",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@babel/types": "^7.24.7",
