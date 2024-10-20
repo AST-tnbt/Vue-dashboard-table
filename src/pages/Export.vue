@@ -1,33 +1,33 @@
 <template>
   <section class="export-section">
-    <v-card class="card-container">
-      <h2 class="header">Export Data</h2>
+    <v-card class="card-container ml-5">
+      <h2 class="header text-primary">Export Data</h2>
       <div class="table-container">
         <v-data-table
           v-model="selected"
           :items="items"
           item-value="name"
           show-select
-          class="data-table"
         ></v-data-table>
       </div>
     </v-card>
 
-    <div class="export-dropdown">
-      <button class="export-button" @click="toggleDropdown">Export</button>
-      
-      <ul v-if="dropdownOpen" class="dropdown-menu" @click.stop>
-        <li @click="exportToExcel">Export Excel</li>
-        <li @click="exportToCSV">Export CSV</li>
-        <li @click="exportToPDF">Export PDF</li>
-      </ul>
-    </div>
+    <v-card class="ml-5">
+      <v-select
+        v-model="selectedFormat"
+        :items="formats"
+        label="Select format"
+        outlined
+      ></v-select>
+      <v-btn color="primary" @click="handleExport">Export</v-btn>
+    </v-card>
   </section>
 </template>
 
 <script>
 import ExcelJS from 'exceljs';
 import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 export default {
   data() {
@@ -43,21 +43,18 @@ export default {
         { name: '🥭 Mango', location: 'India', height: '0.15', base: '0.1', volume: '0.0005' },
         { name: '🍓 Strawberry', location: 'USA', height: '0.03', base: '0.03', volume: '0.00002' },
       ],
-      dropdownOpen: false,
+      formats: ['CSV', 'Excel', 'PDF'],
+      selectedFormat: null,
     };
   },
   methods: {
-    toggleDropdown() {
-      this.dropdownOpen = !this.dropdownOpen;
-      if (this.dropdownOpen) {
-        document.addEventListener('click', this.closeDropdown);
-      }
-    },
-    
-    closeDropdown(event) {
-      if (!this.$el.contains(event.target)) {
-        this.dropdownOpen = false;
-        document.removeEventListener('click', this.closeDropdown);
+    handleExport() {
+      if (this.selectedFormat === 'CSV') {
+        this.exportToCSV();
+      } else if (this.selectedFormat === 'Excel') {
+        this.exportToExcel();
+      } else if (this.selectedFormat === 'PDF') {
+        this.exportToPDF();
       }
     },
 
@@ -71,7 +68,6 @@ export default {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      this.dropdownOpen = false;
     },
     
     convertToCSV(data) {
@@ -113,7 +109,6 @@ export default {
       link.href = URL.createObjectURL(blob);
       link.download = 'fruits_data.xlsx';
       link.click();
-      this.dropdownOpen = false;
     },
 
     exportToPDF() {
@@ -121,79 +116,22 @@ export default {
       const doc = new jsPDF();
       doc.text("Fruit List", 10, 10);
 
-      let y = 20;
-      selectedItems.forEach((item) => {
-        doc.text(`Name: ${item.name || 'N/A'}, Location: ${item.location || 'N/A'}, Height: ${item.height || 'N/A'}, Base: ${item.base || 'N/A'}, Volume: ${item.volume || 'N/A'}`, 10, y);
-        y += 10;
+      const tableData = selectedItems.map(item => [
+        item.name || 'N/A',
+        item.location || 'N/A',
+        item.height || 'N/A',
+        item.base || 'N/A',
+        item.volume || 'N/A'
+      ]);
+
+      doc.autoTable({
+        head: [['Name', 'Location', 'Height', 'Base', 'Volume']],
+        body: tableData,
+        startY: 20
       });
 
       doc.save('fruits_data.pdf');
-      this.dropdownOpen = false;
     }
   }
 };
 </script>
-
-<style scoped>
-.export-section {
-  padding: 20px;
-  background-color: #f5f5f5;
-}
-
-.header {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  text-align: center;
-  color: #1976D2;
-}
-
-.export-dropdown {
-  margin-top: 20px;
-  text-align: left;
-  position: relative;
-}
-
-.export-button {
-  background-color: #1976D2;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.export-button:hover {
-  background-color: #1565C0;
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 40px;
-  left: 0;
-  background-color: white;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 5px;
-  padding: 10px 0;
-  width: 150px;
-  z-index: 1000;
-}
-
-.dropdown-menu li {
-  padding: 10px 20px;
-  font-size: 14px;
-  color: #333;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.dropdown-menu li:hover {
-  background-color: #f1f1f1;
-}
-
-.dropdown-menu li:active {
-  background-color: #ddd;
-}
-</style>
