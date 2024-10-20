@@ -33,10 +33,10 @@
           <v-dialog v-model="dialog" max-width="500px">
 
             <template v-slot:activator="{ props }">
-              <v-btn class="mb-2" color="primary" dark v-bind="props">
+              <v-btn color="primary" dark v-bind="props">
                 New Item
               </v-btn>
-              <v-btn class="mb-2" color="red" dark @click="deleteItem" v-if="selected.length > 0">
+              <v-btn color="red" dark @click="deleteItem" v-if="selected.length > 0">
                 Delete
               </v-btn>
             </template>
