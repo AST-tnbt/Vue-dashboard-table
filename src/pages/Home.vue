@@ -111,7 +111,7 @@
         </v-toolbar>
       </template>
 
-      <template v-slot:item.edit="{ item }">
+      <template v-slot:[`item.edit`]="{ item }">
         <v-icon
           class="me-2"
           size="small"
@@ -330,7 +330,7 @@
         this.dialog = true
       },
 
-      deleteItem(item) 
+      deleteItem() 
       {
         this.selectedItems = [...this.selected]; 
         this.dialogDelete = true
