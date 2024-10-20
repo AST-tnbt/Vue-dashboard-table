@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router/auto';
 import Home from '../pages/Home.vue';
 import Import from '../pages/Import.vue';
-
+import Export from '../pages/Export.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -13,6 +13,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/import',
     name: 'Import',
     component: Import,
+  },
+  {
+    path:'/export',
+    name:'Export',
+    component: Export,
   },
 
 ]
