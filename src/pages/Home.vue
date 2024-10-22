@@ -1,8 +1,8 @@
 <template>
-  <v-card class="mt-5 mx-5">
+  <v-card class="my-5 mx-5">
     <v-data-table
     v-model="selected"
-    :headers="headers"
+    :headers="headersTable"
     :items="filteredItems"
     item-value="id"
     show-select
@@ -31,9 +31,8 @@
         <v-toolbar flat>
           <v-spacer></v-spacer>
           <v-dialog v-model="dialog" max-width="500px">
-
             <template v-slot:activator="{ props }">
-              <v-btn color="primary" dark v-bind="props">
+              <v-btn class="bg-blue-darken-4 mr-2" v-bind="props" >
                 New Item
               </v-btn>
               <v-btn color="red" dark @click="deleteItem" v-if="selected.length > 0">
@@ -129,7 +128,7 @@
   export default 
   {
     setup() {
-      const headers = inject("headers").value;
+      const headers = inject("headers");
       const {items, deleteItems, updateItem, addItem} = inject("items");
 
       return {
@@ -163,6 +162,7 @@
         base: 0,
         volume: 0,
       },
+      headersTable: [],
     }),
 
     computed: 
@@ -202,6 +202,7 @@
     {
       initialize()
       {
+        this.headersTable = this.headers.map(header => ({ title: header, key: header.toLowerCase(),}))
         this.locationOptions = [...new Set(this.items.map(item => item.location))];
       },
 

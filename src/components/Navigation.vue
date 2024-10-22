@@ -18,11 +18,6 @@
                 <v-list-item class="no-select">{{ navItem.text }}</v-list-item>
             </v-list-item>
         </v-list>
-        <template v-slot:append>
-            <div class="pa-2">
-                <v-btn block class="mb-2 bg-grey-darken-3">LOGOUT</v-btn>
-            </div>
-        </template>
     </v-navigation-drawer>
 </template>
 <script setup>
@@ -30,7 +25,6 @@ const navItems = [
     {text: "Home", icon: "mdi-home", path: "/"},
     {text: "Import", icon: "mdi-import", path: "/import"},
     {text: "Export", icon: "mdi-export", path: "/export"},
-    {text: "Setting", icon: "mdi-cog-outline", path: "/setting"},
 ]
 </script>
 <style>
