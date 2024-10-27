@@ -1,8 +1,8 @@
 <template>
-  <v-card class="mt-5 mx-5">
+  <v-card class="my-5 mx-5">
     <v-data-table
     v-model="selected"
-    :headers="headers"
+    :headers="headersTable"
     :items="filteredItems"
     item-value="id"
     show-select
@@ -31,12 +31,11 @@
         <v-toolbar flat>
           <v-spacer></v-spacer>
           <v-dialog v-model="dialog" max-width="500px">
-
             <template v-slot:activator="{ props }">
-              <v-btn class="mb-2" color="primary" dark v-bind="props">
+              <v-btn class="bg-blue-darken-4 mr-2" v-bind="props" >
                 New Item
               </v-btn>
-              <v-btn class="mb-2" color="red" dark @click="deleteItem" v-if="selected.length > 0">
+              <v-btn color="red" dark @click="deleteItem" v-if="selected.length > 0">
                 Delete
               </v-btn>
             </template>
@@ -125,8 +124,21 @@
 </template>
   
 <script>
+  import { inject } from 'vue';
   export default 
   {
+    setup() {
+      const headers = inject("headers");
+      const {items, deleteItems, updateItem, addItem} = inject("items");
+
+      return {
+        headers,
+        items,
+        deleteItems,
+        updateItem,
+        addItem
+      }
+    },
     data: () => ({
       dialog: false,
       dialogDelete: false,
@@ -135,41 +147,6 @@
       search: '',
       locationFilter: [],
       locationOptions: [],
-      headers:
-      [
-        {
-          title: 'ID',
-          key: 'id',
-          sortable: false,
-        },
-        {
-          title: 'Name',
-          key: 'name',
-        },
-        {
-          title: 'Location',
-          key: 'location',
-        },
-        {
-          title: 'Height',
-          key: 'height',
-        },
-        {
-          title: 'Base',
-          key: 'base',
-        },
-        {
-          title: 'Volume',
-          key: 'volume',
-        },
-        {
-          key: 'edit',
-          sortable: false,
-        },
-      ],
-
-      items: [],
-
       editedIndex: -1,
       editedItem: {
         name: '',
@@ -185,6 +162,7 @@
         base: 0,
         volume: 0,
       },
+      headersTable: [],
     }),
 
     computed: 
@@ -215,18 +193,6 @@
       },
     },
 
-    watch: 
-    {
-      dialog(val) 
-      {
-        val || this.close()
-      },
-      dialogDelete(val) 
-      {
-        val || this.close()
-      },
-    },
-
     created() 
     {
       this.initialize()
@@ -236,90 +202,7 @@
     {
       initialize()
       {
-        this.items = 
-        [
-          {
-            id: 1,
-            name: '🍎 Apple',
-            location: 'Washington',
-            height: '0.1',
-            base: '0.07',
-            volume: '0.0001',
-          },
-          {
-            id: 2,
-            name: '🍌 Banana',
-            location: 'Ecuador',
-            height: '0.2',
-            base: '0.05',
-            volume: '0.0002',
-          },
-          {
-            id: 3,
-            name: '🍇 Grapes',
-            location: 'Italy',
-            height: '0.02',
-            base: '0.02',
-            volume: '0.00001',
-          },
-          {
-            id: 4,
-            name: '🍉 Watermelon',
-            location: 'China',
-            height: '0.4',
-            base: '0.3',
-            volume: '0.03',
-          },
-          {
-            id: 5,
-            name: '🍍 Pineapple',
-            location: 'Thailand',
-            height: '0.3',
-            base: '0.2',
-            volume: '0.005',
-          },
-          {
-            id: 6,
-            name: '🍒 Cherries',
-            location: 'Turkey',
-            height: '0.02',
-            base: '0.02',
-            volume: '0.00001',
-          },
-          {
-            id: 7,
-            name: '🥭 Mango',
-            location: 'India',
-            height: '0.15',
-            base: '0.1',
-            volume: '0.0005',
-          },
-          {
-            id: 8,
-            name: '🍓 Strawberry',
-            location: 'USA',
-            height: '0.03',
-            base: '0.03',
-            volume: '0.00002',
-          },
-          {
-            id: 9,
-            name: '🍑 Peach',
-            location: 'China',
-            height: '0.09',
-            base: '0.08',
-            volume: '0.0004',
-          },
-          {
-            id: 10,
-            name: '🥝 Kiwi',
-            location: 'New Zealand',
-            height: '0.05',
-            base: '0.05',
-            volume: '0.0001',
-          },
-        ]
-
+        this.headersTable = this.headers.map(header => ({ title: header, key: header.toLowerCase(),}))
         this.locationOptions = [...new Set(this.items.map(item => item.location))];
       },
 
@@ -338,7 +221,7 @@
 
       deleteItemConfirm() 
       {
-        this.items = this.items.filter(item => !this.selectedItems.includes(item.id));
+        this.deleteItems(this.selectedItems);
         this.selected = [];
         this.closeDelete();
       },
@@ -362,7 +245,7 @@
       {
         if (this.editedIndex > -1) 
         {
-          Object.assign(this.items[this.editedIndex], this.editedItem)
+          this.updateItem(this.editedIndex, this.editedItem);
         } else 
         {
           const maxId = this.items.length > 0 
@@ -370,7 +253,7 @@
             : 1;
 
           this.editedItem.id = maxId + 1; 
-          this.items.push(this.editedItem)
+          this.addItem(this.editedItem);
         }
         this.close()
       },

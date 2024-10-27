@@ -13,8 +13,8 @@
         </v-form>
         <v-skeleton-loader type="table" v-if="loading"/>   
         <v-data-table
-            v-if="items.length > 0 && !loading"
-            :items="items"
+            v-if="itemsUpload.length > 0 && !loading"
+            :items="itemsUpload"
         >
             <template v-slot:top>
                 <v-toolbar color="blue-darken-4">
@@ -22,20 +22,20 @@
                 </v-toolbar>
             </template>
         </v-data-table>
-        <v-btn prepend-icon="mdi-upload" v-if="items.length > 0 && !loading" class="mt-2 bg-blue-darken-4">Upload</v-btn>
-        <v-btn prepend-icon="mdi-broom" v-if="items.length > 0 && !loading" class="mt-2 ml-2 bg-gray-darken-4" @click="dialog = true">Clear</v-btn>
+        <v-btn prepend-icon="mdi-upload" v-if="itemsUpload.length > 0 && !loading" class="mt-2 bg-blue-darken-4" @click="showUploadDialog">Upload</v-btn>
+        <v-btn prepend-icon="mdi-broom" v-if="itemsUpload.length > 0 && !loading" class="mt-2 ml-2 bg-gray-darken-4" @click="showClearDialog">Clear</v-btn>
     </v-container>
     <v-dialog v-model="dialog" width="auto">
         <v-card
         max-width="400"
         prepend-icon="mdi-ticket-confirmation-outline"
-        text="Are you sure to clear the data?"
-        title="Confirm clear data"
+        :text="this.dialogText"
+        :title="this.dialogTitle" 
         >
             <template v-slot:actions>
             <v-btn
                 text="Ok"
-                @click="clearData"
+                @click="handleClickOk"
             ></v-btn>
             <v-btn
                 text="Cancel"
@@ -44,24 +44,78 @@
             </template>
         </v-card>
     </v-dialog>
+    <v-snackbar
+      v-model="toast"
+      :timeout="2000"
+      variant="tonal"
+      color="success"
+      location="right"
+      opacity
+    >
+      Upload successfully.
+      <template v-slot:actions>
+        <v-btn
+          density="compact"
+          variant="tonal"
+          icon="mdi-close"
+          @click="toast = false"
+        >
+        </v-btn>
+      </template>
+    </v-snackbar>
+    <v-snackbar
+      v-model="errorToast"
+      :timeout="2000"
+      variant="tonal"
+      color="error"
+      location="right"
+      opacity
+    >
+      The fields do not match.
+      <template v-slot:actions>
+        <v-btn
+          density="compact"
+          variant="tonal"
+          icon="mdi-close"
+          @click="errorToast = false"
+        >
+        </v-btn>
+      </template>
+    </v-snackbar>
 </template>
 <script>
     import Papa from 'papaparse'; 
+    import { inject } from 'vue';
     import * as XLSX from 'xlsx';
 
     export default {
+        setup() {
+            const headers = inject("headers");
+            const {items, deleteItems, addItem} = inject("items");
+            return {
+                headers,
+                items,
+                deleteItems,
+                addItem,                
+            }
+        },
         data() {
             return {
                 file: null,
-                items: [],
+                itemsUpload: [],
+                headersUpload: [],
                 dialog: false,
-                loading: false
+                loading: false,
+                dialogTitle: "",
+                dialogText: "",
+                toast: false,
+                errorToast: false,
             };
         },
         watch: {
             file(newValue) {
                 if (!newValue) {
-                    this.items = [];
+                    this.itemsUpload = [];
                 }
             }
         },
@@ -71,9 +125,9 @@
                     return;
                 }
 
+                
                 this.loading = true;
-                const startTime = Date.now();
-
+                
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const data = e.target.result;
@@ -82,23 +136,18 @@
                     } else if (this.file.name.endsWith(".xlsx")) {
                         this.parseXLSX(data);
                     }
-                    const timeRemaining = Date.now() - startTime; 
-                    if (timeRemaining < 2000) {
-                        setTimeout(() => {
-                            this.loading = false;
-                        }, 2000 - timeRemaining);
-                    }
-                    this.loading = false;
                 } 
-
-
+                
                 reader.readAsArrayBuffer(this.file);
+                
             },
             parseCSV(data) {
                 Papa.parse(new Blob([data]), {
                 complete: (result) => {
                     // console.log(result.data);
-                    this.items = result.data;
+                    this.itemsUpload = result.data;
+                    this.extractHeader();
+                    this.checkHeaders();
                     },
                     header: true,
                 });
@@ -109,12 +158,67 @@
                 const worksheet = workbook.Sheets[sheetName];
                 const jsonData = XLSX.utils.sheet_to_json(worksheet);
                 // console.log(jsonData);
-                this.items = jsonData;
+                this.itemsUpload = jsonData;
+                this.extractHeader();
+                this.checkHeaders();
+            },
+            extractHeader() {
+                if (this.itemsUpload.length > 0) {
+                    this.headersUpload = Object.keys(this.itemsUpload[0]);
+                    console.log(this.headersUpload);
+                }
+            },
+            checkHeaders() {
+                if (JSON.stringify(this.headers) !== JSON.stringify(this.headersUpload)) {
+                    this.errorToast = true;
+                    this.clearData();
+                    this.loading = false;
+                    return;
+                }
+                this.loading = false;
             },
             clearData() {
-                this.items = [];
-                this.dialog = false;
+                this.itemsUpload = [];
                 this.file = null;
+                this.headersUpload = [];
+            },
+            uploadData() {
+                this.itemsUpload = this.itemsUpload.map(item => ({
+                    id: item['ID'],
+                    name: item['Name'],
+                    location: item['Location'],
+                    height: Number(item['Height']),
+                    base: Number(item['Base']),
+                    volume: Number(item['Volume']),
+                }));
+                // console.log(this.itemsUpload);
+                // console.log(this.items);
+                if (this.items.length > 0) {
+                    this.deleteItems(this.items);
+                }
+                for (const item of this.itemsUpload) {
+                    this.addItem(item);
+                }
+                this.clearData();
+                this.toast = true;
+            },
+            handleClickOk() {
+                if (this.dialogTitle === "Clear Confirmation") {
+                    this.clearData();
+                } else if (this.dialogTitle === "Upload Confirmation") {
+                    this.uploadData();
+                }
+                this.dialog = false;
+            },
+            showUploadDialog() {
+                this.dialog = true;
+                this.dialogTitle = "Upload Confirmation";
+                this.dialogText = "All current data will be altered after uploading.";
+            },
+            showClearDialog() {
+                this.dialog = true;
+                this.dialogTitle = "Clear Confirmation";
+                this.dialogText = "Are you sure to clear the data?";
             }
         }
     }
