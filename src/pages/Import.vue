@@ -91,11 +91,11 @@
     export default {
         setup() {
             const headers = inject("headers");
-            const {items, deleteItems, addItem} = inject("items");
+            const {items, removeItems, addItem} = inject("items");
             return {
                 headers,
                 items,
-                deleteItems,
+                removeItems,
                 addItem,                
             }
         },
@@ -124,10 +124,7 @@
                 if (!this.file) {
                     return;
                 }
-
-                
                 this.loading = true;
-                
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const data = e.target.result;
@@ -137,19 +134,17 @@
                         this.parseXLSX(data);
                     }
                 } 
-                
                 reader.readAsArrayBuffer(this.file);
-                
             },
             parseCSV(data) {
                 Papa.parse(new Blob([data]), {
                 complete: (result) => {
-                    // console.log(result.data);
                     this.itemsUpload = result.data;
                     this.extractHeader();
                     this.checkHeaders();
                     },
                     header: true,
+                    skipEmptyLines: true,
                 });
             },
             parseXLSX(data) {
@@ -157,7 +152,6 @@
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
                 const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                // console.log(jsonData);
                 this.itemsUpload = jsonData;
                 this.extractHeader();
                 this.checkHeaders();
@@ -165,7 +159,6 @@
             extractHeader() {
                 if (this.itemsUpload.length > 0) {
                     this.headersUpload = Object.keys(this.itemsUpload[0]);
-                    console.log(this.headersUpload);
                 }
             },
             checkHeaders() {
@@ -184,17 +177,15 @@
             },
             uploadData() {
                 this.itemsUpload = this.itemsUpload.map(item => ({
-                    id: item['ID'],
-                    name: item['Name'],
-                    location: item['Location'],
-                    height: Number(item['Height']),
-                    base: Number(item['Base']),
-                    volume: Number(item['Volume']),
+                    id: Number(item['User ID']),
+                    f_name: item['First Name'],
+                    l_name: item['Last Name'],
+                    email: item['Email'],
+                    dob: item['Date of Birth'],
+                    country: item['Country']
                 }));
-                // console.log(this.itemsUpload);
-                // console.log(this.items);
                 if (this.items.length > 0) {
-                    this.deleteItems(this.items);
+                    this.removeItems(this.items);
                 }
                 for (const item of this.itemsUpload) {
                     this.addItem(item);

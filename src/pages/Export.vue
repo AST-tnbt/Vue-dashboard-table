@@ -52,17 +52,17 @@
 
 <script>
 import ExcelJS from 'exceljs';
-// import jsPDF from 'jspdf';
-// import 'jspdf-autotable';
 import { inject } from 'vue';
 
 export default {
   setup() {
     const headers = inject("headers");
+    const headerKeys = inject("headerKeys");
     const {items} = inject("items");
     return {
       headers,
-      items,
+      headerKeys,
+      items
     }
   },
   data() {
@@ -71,18 +71,15 @@ export default {
       selected: [],
       formats: ['CSV', 'Excel'],
       selectedFormat: null,
-      headersTable: this.headers.map(header => ({ title: header, key: header.toLowerCase(),})),
+      headersTable: this.headers.map((header, index) => ({ title: header, key: this.headerKeys[index]}))
     };
   },
   methods: {
     handleExport() {
-      // console.log(this.selected);
       if (this.selectedFormat === 'CSV') {
         this.exportToCSV();
       } else if (this.selectedFormat === 'Excel') {
         this.exportToExcel();
-      // } else if (this.selectedFormat === 'PDF') {
-      //   this.exportToPDF();
       } else {
         this.toast = true;
       }
@@ -93,17 +90,15 @@ export default {
       const csvContent = this.convertToCSV(selectedItems);
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
-      link.setAttribute('href', URL.createObjectURL(blob));
-      link.setAttribute('download', 'fruits_data.csv');
-      document.body.appendChild(link);
+      link.href = URL.createObjectURL(blob);
+      link.download = 'users_data.csv';
       link.click();
-      document.body.removeChild(link);
     },
 
     convertToCSV(data) {
-      const header = 'ID,Name,Location,Height,Base,Volume\n';
+      const header = 'User ID,First Name,Last Name,Email,Date of Birth,Country\n';
       const rows = data.map(item => {
-        return `${item.id},${item.name || 'N/A'},${item.location || 'N/A'},${item.height || 'N/A'},${item.base || 'N/A'},${item.volume || 'N/A'}`;
+        return `${item.id},${item.f_name || 'N/A'},${item.l_name || 'N/A'},${item.email || 'N/A'},${item.dob || 'N/A'},${item.country || 'N/A'}`;
       });
       return header + rows.join('\n');
     },
@@ -111,25 +106,24 @@ export default {
     async exportToExcel() {
       const selectedItems = this.selected.length > 0 ? this.selected : this.items;
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Fruits');
-
+      const worksheet = workbook.addWorksheet('Users');
       worksheet.columns = [
-        { header: 'ID', key: 'id', width: 10 },
-        { header: 'Name', key: 'name', width: 15 },
-        { header: 'Location', key: 'location', width: 20 },
-        { header: 'Height', key: 'height', width: 15 },
-        { header: 'Base', key: 'base', width: 15 },
-        { header: 'Volume', key: 'volume', width: 15 },
+        { header: 'User ID', key: 'id', width: 10 },
+        { header: 'First Name', key: 'f_name', width: 15 },
+        { header: 'Last Name', key: 'l_name', width:15 },
+        { header: 'Email', key: 'email', width: 15 },
+        { header: 'Date of Birth', key: 'dob', width: 15 },
+        { header: 'Country', key: 'country', width: 15 },
       ];
 
       selectedItems.forEach(item => {
         worksheet.addRow({
           id: item.id,
-          name: item.name || 'N/A',
-          location: item.location || 'N/A',
-          height: item.height || 'N/A',
-          base: item.base || 'N/A',
-          volume: item.volume || 'N/A',
+          f_name: item.f_name || 'N/A',
+          l_name: item.l_name || 'N/A',
+          email: item.email || 'N/A',
+          dob: item.dob || 'N/A',
+          country: item.country || 'N/A',
         });
       });
 
@@ -139,32 +133,9 @@ export default {
       });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'fruits_data.xlsx';
+      link.download = 'users_data.xlsx';
       link.click();
     },
-
-    // exportToPDF() {
-    //   const selectedItems = this.selected.length > 0 ? this.selected : this.items;
-    //   const doc = new jsPDF();
-    //   doc.text('Fruit List', 10, 10);
-
-    //   const tableData = selectedItems.map(item => [
-    //     item.id,
-    //     item.name || 'N/A',
-    //     item.location || 'N/A',
-    //     item.height || 'N/A',
-    //     item.base || 'N/A',
-    //     item.volume || 'N/A',
-    //   ]);
-
-    //   doc.autoTable({
-    //     head: [['ID', 'Name', 'Location', 'Height', 'Base', 'Volume']],
-    //     body: tableData,
-    //     startY: 20,
-    //   });
-
-    //   doc.save('fruits_data.pdf');
-    // },
   },
 };
 </script>
