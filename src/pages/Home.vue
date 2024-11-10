@@ -10,7 +10,7 @@
       <template v-slot:top>
         <v-text-field
           v-model="search"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Search"
           single-line
           hide-details
@@ -19,9 +19,9 @@
 
         <v-container>
           <v-select
-          v-model="locationFilter"
-          :items="locationOptions"
-          label="Location"
+          v-model="countryFilter"
+          :items="countryOptions"
+          label="Country"
           chips
           multiple
           class="w-25"
@@ -33,7 +33,7 @@
           <v-dialog v-model="dialog" max-width="500px">
             <template v-slot:activator="{ props }">
               <v-btn class="bg-blue-darken-4 mr-2" v-bind="props" >
-                New Item
+                New User
               </v-btn>
               <v-btn color="red" dark @click="deleteItem" v-if="selected.length > 0">
                 Delete
@@ -50,32 +50,33 @@
                   <v-row>
                     <v-col cols="12" md="4" sm="6">
                       <v-text-field
-                      v-model="editedItem.name"
-                      label="Name"
+                      v-model="editedItem.f_name"
+                      label="First name"
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" md="4" sm="6">
                       <v-text-field
-                      v-model="editedItem.location"
-                      label="Location"
+                      v-model="editedItem.l_name"
+                      label="Last name"
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" md="4" sm="6">
                       <v-text-field
-                      v-model="editedItem.height"
-                      label="Height"
+                      v-model="editedItem.email"
+                      label="Email"
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" md="4" sm="6">
                       <v-text-field
-                      v-model="editedItem.base"
-                      label="Base"
+                      v-model="editedItem.dob"
+                      label="Date of birth"
+                      type="date"
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" md="4" sm="6">
                       <v-text-field
-                      v-model="editedItem.volume"
-                      label="Volume"
+                      v-model="editedItem.country"
+                      label="Country"
                       ></v-text-field>
                     </v-col>
                   </v-row>
@@ -97,7 +98,7 @@
 
           <v-dialog v-model="dialogDelete" max-width="500px">
           <v-card>
-            <v-card-title class="text-h5">Are you sure you want to delete this items?</v-card-title>
+            <v-card-title class="text-h5">Are you sure you want to delete this users?</v-card-title>
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="blue-darken-1" variant="text" @click="closeDelete">Cancel</v-btn>
@@ -129,10 +130,12 @@
   {
     setup() {
       const headers = inject("headers");
+      const headerKeys = inject("headerKeys");
       const {items, deleteItems, updateItem, addItem} = inject("items");
 
       return {
         headers,
+        headerKeys,
         items,
         deleteItems,
         updateItem,
@@ -145,22 +148,22 @@
       selected: [],
       selectedItems: [],
       search: '',
-      locationFilter: [],
-      locationOptions: [],
+      countryFilter: [],
+      countryOptions: [],
       editedIndex: -1,
       editedItem: {
-        name: '',
-        location: '',
-        height: 0,
-        base: 0,
-        volume: 0,
+        f_name: "",
+        l_name: "",
+        email: "",
+        dob: "",
+        country: "",
       },
       defaultItem: {
-        name: '',
-        location: '',
-        height: 0,
-        base: 0,
-        volume: 0,
+        f_name: "",
+        l_name: "",
+        email: "",
+        dob: "",
+        country: "",
       },
       headersTable: [],
     }),
@@ -169,7 +172,7 @@
     {
       formTitle() 
       {
-        return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
+        return this.editedIndex === -1 ? 'New User' : 'Edit User'
       },
 
       filteredItems() 
@@ -180,13 +183,14 @@
         {
           const searchTerm = this.search.toLowerCase();
           filtered = filtered.filter(item => 
-              item.name.toLowerCase().includes(searchTerm) ||
-              item.location.toLowerCase().includes(searchTerm)
+              item.f_name.toLowerCase().includes(searchTerm) ||
+              item.l_name.toLowerCase().includes(searchTerm) ||
+              item.country.toLowerCase().includes(searchTerm)
           );
         }
 
         filtered = filtered.filter(item => 
-          this.locationFilter.length === 0 || this.locationFilter.includes(item.location)
+          this.countryFilter.length === 0 || this.countryFilter.includes(item.country)
         );
 
         return filtered;
@@ -202,8 +206,9 @@
     {
       initialize()
       {
-        this.headersTable = this.headers.map(header => ({ title: header, key: header.toLowerCase(),}))
-        this.locationOptions = [...new Set(this.items.map(item => item.location))];
+        this.headersTable = this.headers.map((header, index) => ({ title: header, key: this.headerKeys[index]}))
+        this.headersTable.push({ title: "Edit", key: this.headerKeys[this.headerKeys.length - 1] });
+        this.countryOptions = [...new Set(this.items.map(item => item.country))];
       },
 
       editItem(item) 
@@ -250,7 +255,7 @@
         {
           const maxId = this.items.length > 0 
             ? Math.max(...this.items.map(item => item.id)) 
-            : 1;
+            : 0;
 
           this.editedItem.id = maxId + 1; 
           this.addItem(this.editedItem);

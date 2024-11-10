@@ -13,26 +13,39 @@
   export default {
     setup() {
       const headers = ref([
-        "ID", "Name", "Location", "Height", "Base", "Volume"
+      "User ID","First Name","Last Name","Email","Date of Birth","Country",
+      ]);
+      const headerKeys = ref([
+        "id",
+        "f_name",
+        "l_name",
+        "email",
+        "dob",
+        "country",
+        "edit",
       ]);
       const items = ref<Array<{
         id: number;
-        name: string;
-        location: string;
-        height: number;
-        base: number;
-        volume: number;
+        f_name: string;
+        l_name: string;
+        email: string;
+        dob: string;
+        country: string;
       }>>([]);
       
-      const deleteItems = (delItems: Array<{
+      const deleteItems = (delId: Array<Number>) => {
+        items.value = items.value.filter(item => 
+          !delId.some(id => id === item.id)
+        );
+      };
+      const removeItems = (delItems: Array<{
         id: number;
-        name: string;
-        location: string;
-        height: number;
-        base: number;
-        volume: number;
+        f_name: string;
+        l_name: string;
+        email: string;
+        dob: string;
+        country: string;
       }>) => {
-        // console.log("called")
         items.value = items.value.filter(item => 
           !delItems.some(delItem => delItem.id === item.id)
         );
@@ -41,17 +54,18 @@
         Object.assign(items.value[index], itemUpdation);
       } 
       const addItem = (newItem: { 
-        id: number; 
-        name: string; 
-        location: string; 
-        height: number; 
-        base: number; 
-        volume: number; }) => {
+        id: number;
+        f_name: string;
+        l_name: string;
+        email: string;
+        dob: string;
+        country: string; }) => {
           items.value.push(newItem);
       }
 
       provide("headers", headers);
-      provide("items", {items, deleteItems, updateItem, addItem});
+      provide("headerKeys", headerKeys);
+      provide("items", {items, deleteItems, updateItem, addItem, removeItems});
 
       return {
         headers,
